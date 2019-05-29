@@ -13,7 +13,7 @@ const svg = d3
 
 d3.select(".clicker").on("click", () => {
   isPack = !isPack;
-  draw();
+  drawDatapoints();
 });
 
 const dataset = d3.range(50 + Math.floor(Math.random() * 100)).map((d, i) => ({
@@ -30,34 +30,31 @@ const g = svg
   .attr("class", "main")
   .attr("transition", `translate(${margin * 2}, ${margin * 2})`);
 
-function draw() {
-  const dataSelection = g.selectAll("g.datapoint").data(getData(), d => d.id);
-
-  dataSelection
-    .join(
-      enter =>
-        enter
-          .append("g")
-          .attr("class", "datapoint")
-          .call(onEnter),
-      update => update,
-      onExit
-    )
-    .call(onUpdate);
-
-  dataSelection.filter(d => !d.children).raise();
+function drawDatapoints() {
+  g.selectAll("g.datapoint")
+    .data(getData(), d => d.id)
+    .join(onEnter, update => update, onExit)
+    .call(onUpdate)
+    .filter(d => !d.children)
+    .raise();
 }
 
 function onEnter(selection) {
-  selection
-    .append("circle")
-    .attr("cx", d => d.px)
-    .attr("cy", d => (h + margin * 2) / 2)
-    .attr("r", d => 0)
-    .style("fill", "green")
-    .style("stroke", "black")
-    .style("opacity", 0.3)
-    .call(handleEvents);
+  const makeDatapoint = g =>
+    g
+      .append("circle")
+      .attr("cx", d => d.px)
+      .attr("cy", d => (h + margin * 2) / 2)
+      .attr("r", d => 0)
+      .style("fill", "green")
+      .style("stroke", "black")
+      .style("opacity", 0.3)
+      .call(handleEvents);
+
+  return selection
+    .append("g")
+    .attr("class", "datapoint")
+    .call(makeDatapoint);
 }
 
 function onUpdate(selection) {
@@ -86,7 +83,7 @@ function onExit(selection) {
     .on("end", () => selection.remove());
 }
 
-// function draw() {
+// function drawDatapoints() {
 
 //   const dataSelection = g.selectAll("g.datapoint")
 //     .data(getData(), d => d.id);
@@ -102,7 +99,7 @@ function onExit(selection) {
 //   dataSelection.filter(d => !d.children).raise();
 // }
 
-// function draw() {
+// function drawDatapoints() {
 //   const dataSelection = g.selectAll("g.datapoint")
 //     .data(getData(), d => d.id);
 
