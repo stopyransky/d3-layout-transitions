@@ -6,11 +6,9 @@ body {
 .clicker {
   position: absolute;
   z-index: 100;
-  top: 20;
-  left: 20;
-  margin: 20px;
-  /*   color: red;
-  border: 1px solid red; */
+  bottom: 10;
+  right: 10;
+  margin: 10px;
 }
 
 text {

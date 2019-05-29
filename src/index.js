@@ -1,14 +1,15 @@
 import "./styles.css";
 import * as d3 from "d3";
-const w = window.innerWidth - 32;
-const h = window.innerHeight - 32;
+const margin = 96;
+const w = window.innerWidth - margin * 2;
+const h = window.innerHeight - margin * 2;
 let isPack = true;
 
 const svg = d3
   .select("svg")
   .attr("width", window.innerWidth)
   .attr("height", window.innerHeight)
-  .style("background-color", "#eee");
+  .style("background-color", "#fff");
 
 d3.select(".clicker").on("click", () => {
   isPack = !isPack;
@@ -16,114 +17,156 @@ d3.select(".clicker").on("click", () => {
 });
 
 const dataset = d3.range(50 + Math.floor(Math.random() * 100)).map((d, i) => ({
-  radiusVar: Math.random() * 12 + 12,
-  xVar: Math.random() * w,
-  yVar: Math.random() * h,
+  radiusVar: Math.random() * 12 + 6,
+  xVar: Math.random() * w + margin,
+  yVar: Math.random() * h + margin,
   id: "id" + i,
   groupVar: d3.shuffle(["A", "B", "C", "C", "D", "A", "C"])[0],
   subgroupVar: d3.shuffle(["xyz", "xyz", "abc", "abc", "xyz"])[0]
 }));
 
-const g = svg.append("g").attr("class", "main");
+const g = svg
+  .append("g")
+  .attr("class", "main")
+  .attr("transition", `translate(${margin * 2}, ${margin * 2})`);
 
 function draw() {
   const dataSelection = g.selectAll("g.datapoint").data(getData(), d => d.id);
 
-  const enterG = dataSelection
-    .enter()
-    .append("g")
-    .attr("class", "datapoint")
-    .call(s =>
-      s
-        .append("circle")
-        .attr("cx", d => d.px)
-        .attr("cy", d => h / 2)
-        .attr("r", d => 0)
-        .style("fill", "green")
-        .style("stroke", "black")
-        .style("opacity", 0.3)
-        .call(handleEvents)
-    );
-
-  dataSelection.merge(enterG).call(s =>
-    s
-      .select("circle")
-      .style("pointer-events", "none")
-      .transition()
-      .duration(3000)
-      .style("fill", "steelblue")
-      .attr("cx", d => d.px)
-      .attr("cy", d => d.py)
-      .attr("r", d => d.pr)
-      .on("end", (d, i, n) => {
-        d3.select(n[i]).style("pointer-events", null);
-      })
-  );
-
-  dataSelection.exit().call(s =>
-    s
-      .selectAll("circle")
-      .style("pointer-events", "none")
-      .transition()
-      .duration(3000)
-      .style("fill", "red")
-      .attr("r", d => 0)
-      .on("end", () => s.remove())
-  );
+  dataSelection
+    .join(
+      enter =>
+        enter
+          .append("g")
+          .attr("class", "datapoint")
+          .call(onEnter),
+      update => update,
+      onExit
+    )
+    .call(onUpdate);
 
   dataSelection.filter(d => !d.children).raise();
 }
 
-// function createNodes(selection) {
-//   selection
-//     .append("circle")
-//     .attr("cx", d => d.px)
-//     .attr("cy", d => h / 2)
-//     .attr("r", d => 4)
-//     .style("fill", "green")
-//     .style("stroke", "black")
-//     .style("opacity", 0.3)
-//     .call(handleEvents);
+function onEnter(selection) {
+  selection
+    .append("circle")
+    .attr("cx", d => d.px)
+    .attr("cy", d => (h + margin * 2) / 2)
+    .attr("r", d => 0)
+    .style("fill", "green")
+    .style("stroke", "black")
+    .style("opacity", 0.3)
+    .call(handleEvents);
+}
+
+function onUpdate(selection) {
+  selection
+    .select("circle")
+    .style("pointer-events", "none")
+    .transition()
+    .duration(3000)
+    .style("fill", "steelblue")
+    .attr("cx", d => d.px)
+    .attr("cy", d => d.py)
+    .attr("r", d => d.pr)
+    .on("end", (d, i, n) => {
+      d3.select(n[i]).style("pointer-events", null);
+    });
+}
+
+function onExit(selection) {
+  selection
+    .select("circle")
+    .style("pointer-events", "none")
+    .transition()
+    .duration(3000)
+    .attr("r", d => 0)
+    .style("fill", "red")
+    .on("end", () => selection.remove());
+}
+
+// function draw() {
+
+//   const dataSelection = g.selectAll("g.datapoint")
+//     .data(getData(), d => d.id);
+
+//   const enterG = dataSelection.enter()
+//     .append("g")
+//     .attr("class", "datapoint");
+
+//   onEnter(enterG);
+//   onUpdate(dataSelection.merge(enterG));
+//   onExit(dataSelection.exit());
+
+//   dataSelection.filter(d => !d.children).raise();
 // }
 
-// function updateNodes(selection) {
-//   selection
-//     .select("circle")
-//     .transition()
-//     .duration(3000)
-//     .style("fill", "steelblue")
-//     .attr("cx", d => d.px)
-//     .attr("cy", d => d.py)
-//     .attr("r", d => d.pr);
-// }
+// function draw() {
+//   const dataSelection = g.selectAll("g.datapoint")
+//     .data(getData(), d => d.id);
 
-// function removeNodes(selection) {
-//   selection
-//     .selectAll("circle")
-//     .transition()
-//     .duration(3000)
-//     .attr("r", d => 0)
-//     .on("end", () => {
-//       selection.remove();
-//     });
+//   const enterG = dataSelection
+//     .enter()
+//     .append("g")
+//     .attr("class", "datapoint")
+//     .call(s =>
+//       s.append("circle")
+//         .attr("cx", d => d.px)
+//         .attr("cy", d => h / 2)
+//         .attr("r", d => 0)
+//         .style("fill", "green")
+//         .style("stroke", "black")
+//         .style("opacity", 0.3)
+//         .call(handleEvents)
+//     );
+
+//   dataSelection.merge(enterG).call(s =>
+//     s
+//       .select("circle")
+//       .style("pointer-events", "none") // disable pointer events before transition
+//       .transition()
+//       .duration(3000)
+//       .style("fill", "steelblue")
+//       .attr("cx", d => d.px)
+//       .attr("cy", d => d.py)
+//       .attr("r", d => d.pr)
+//       .on("end", (d, i, n) => {
+//         // reenable pointer events on transition end
+//         d3.select(n[i]).style("pointer-events", null);
+//       })
+//   );
+
+//   dataSelection.exit().call(s =>
+//     s
+//       .selectAll("circle")
+//       .style("pointer-events", "none")
+//       .transition()
+//       .duration(3000)
+//       .style("fill", "red")
+//       .attr("r", d => 0)
+//       .on("end", s.remove)
+//   );
+
+//   dataSelection.filter(d => !d.children).raise();
 // }
 
 function handleEvents(selection) {
   selection.on("mouseover", (d, i, n) => {
-    d3.select(n[i])
+    d3.select(n[i]) // <circle>
       .style("stroke-width", 3)
       .style("opacity", 0.8);
 
-    d3.select(n[i].parentElement)
+    d3.select(n[i].parentElement) // <g>
       .append("text")
       .attr("dx", d.px)
       .attr("dy", d.py)
       .style("opacity", 0.0)
-      .transition()
-      .style("fill", "black")
-      .style("opacity", 1)
       .style("text-anchor", "middle")
       .style("alignment-baseline", "central")
+      .style("fill", "black")
+      .transition()
+      .style("opacity", 1)
       .style("pointer-events", "none")
       .text(d.id);
   });
@@ -137,8 +180,9 @@ function handleEvents(selection) {
         .select("text")
         .remove();
     })
-    .on("mouseup", d => console.log(d));
+    .on("mouseup", console.log);
 }
+
 function getData() {
   const hierarchy = makeHierarchy(dataset, v => d3.sum(v, d => d.radiusVar), [
     d => d.groupVar,
@@ -164,7 +208,7 @@ function getData() {
 function pack(hierarchyData) {
   return d3
     .pack()
-    .size([w, h])
+    .size([w + margin, h + margin])
     .padding(2)(hierarchyData);
 }
 
