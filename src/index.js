@@ -4,7 +4,7 @@ const margin = 96;
 const w = window.innerWidth - margin * 2;
 const h = window.innerHeight - margin * 2;
 let isPack = true;
-
+const userSelected = [];
 const svg = d3
   .select("svg")
   .attr("width", window.innerWidth)
@@ -63,7 +63,7 @@ function onUpdate(selection) {
     .style("pointer-events", "none")
     .transition()
     .duration(3000)
-    .style("fill", "steelblue")
+    .style("fill", d => (userSelected.includes(d.id) ? "orange" : "steelblue"))
     .attr("cx", d => d.px)
     .attr("cy", d => d.py)
     .attr("r", d => d.pr)
@@ -177,7 +177,16 @@ function handleEvents(selection) {
         .select("text")
         .remove();
     })
-    .on("mouseup", console.log);
+    .on("mouseup", (d, i, n) => {
+      const index = userSelected.indexOf(d.id);
+      if (index >= 0) {
+        d3.select(n[i]).style("fill", "steelblue");
+        userSelected.splice(index, 1);
+      } else {
+        d3.select(n[i]).style("fill", "orange");
+        userSelected.push(d.id);
+      }
+    });
 }
 
 function getData() {
