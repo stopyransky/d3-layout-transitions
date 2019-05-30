@@ -219,7 +219,7 @@ function pack(hierarchyData) {
 }
 
 // https://medium.com/data-visualization-society/making-hierarchy-layouts-with-d3-hierarchy-fdb36d0a9c56
-function makeHierarchy(data, reduce, groupBy, ...config) {
+function makeHierarchy(data, reduce, groupBy, config) {
   const defaultConfig = {
     childrenAccessorFn: ([key, value]) =>
       value && value.size && Array.from(value),
@@ -227,7 +227,7 @@ function makeHierarchy(data, reduce, groupBy, ...config) {
     sortFn: (a, b) => b.value - a.value
   };
 
-  const combinedConfig = { ...defaultConfig, ...config, data, reduce, groupBy };
+  const combinedConfig = { ...defaultConfig, ...config };
   const { childrenAccessorFn, sumFn, sortFn } = combinedConfig;
 
   if (!data || !data.length)
